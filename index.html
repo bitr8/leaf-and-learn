@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a2e1a">
+    <meta name="description" content="Plant identification flashcard game for horticulture students">
+
+    <title>Leaf & Learn</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Offline indicator -->
+    <div class="offline-indicator" id="offline-indicator">
+        You're offline - game will still work!
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-logo">Leaf & Learn</div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Preparing your botanical journey...</div>
+    </div>
+
+    <!-- Game container -->
+    <div id="game-container"></div>
+
+    <!-- Install prompt (hidden by default) -->
+    <div class="install-prompt hidden" id="install-prompt">
+        <span>Install Leaf & Learn for the best experience</span>
+        <button id="install-btn">Install</button>
+        <button class="close-btn" id="close-install">✕</button>
+    </div>
+
+    <!-- Phaser 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+
+    <!-- Game scripts -->
+    <script src="js/plants.js"></script>
+    <script src="js/game.js"></script>
+
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.warn('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+
+        // Offline detection
+        const offlineIndicator = document.getElementById('offline-indicator');
+
+        function updateOnlineStatus() {
+            if (!navigator.onLine) {
+                offlineIndicator.classList.add('visible');
+            } else {
+                offlineIndicator.classList.remove('visible');
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installPrompt = document.getElementById('install-prompt');
+        const installBtn = document.getElementById('install-btn');
+        const closeInstall = document.getElementById('close-install');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show install prompt after a delay
+            setTimeout(() => {
+                if (deferredPrompt) {
+                    installPrompt.classList.remove('hidden');
+                }
+            }, 3000);
+        });
+
+        installBtn?.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+
+            if (outcome === 'accepted') {
+                console.log('User installed the app');
+            }
+
+            deferredPrompt = null;
+            installPrompt.classList.add('hidden');
+        });
+
+        closeInstall?.addEventListener('click', () => {
+            installPrompt.classList.add('hidden');
+        });
+
+        // Hide install prompt if already installed
+        window.addEventListener('appinstalled', () => {
+            installPrompt.classList.add('hidden');
+            deferredPrompt = null;
+        });
+
+        // Hide loading overlay when game is ready
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
