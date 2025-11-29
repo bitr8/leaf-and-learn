@@ -195,13 +195,16 @@ class BootScene extends Phaser.Scene {
             progressBar.fillRoundedRect(barX, barY, barWidth * value, barHeight, 3);
         });
 
+        // Set crossOrigin for loading images
+        this.load.setCORS('anonymous');
+
         // Load plant images
         PLANTS.forEach(plant => {
             this.load.image(plant.id, plant.imageUrl);
         });
 
         this.load.on('loaderror', (file) => {
-            console.warn('Failed to load:', file.key);
+            console.warn('Failed to load:', file.key, file.src);
         });
     }
 

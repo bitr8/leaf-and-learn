@@ -1,4 +1,4 @@
-const CACHE_NAME = 'leaf-learn-v2';
+const CACHE_NAME = 'leaf-learn-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
