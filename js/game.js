@@ -193,18 +193,25 @@ class BootScene extends Phaser.Scene {
             progressBar.clear();
             progressBar.fillStyle(0xd4a84b, 1);
             progressBar.fillRoundedRect(barX, barY, barWidth * value, barHeight, 3);
+            loadingText.setText(`Loading... ${Math.round(value * 100)}%`);
         });
-
-        // Set crossOrigin for loading images
-        this.load.setCORS('anonymous');
 
         // Load plant images
         PLANTS.forEach(plant => {
+            console.log('Queuing image:', plant.id, plant.imageUrl);
             this.load.image(plant.id, plant.imageUrl);
         });
 
+        this.load.on('filecomplete', (key, type, data) => {
+            console.log('Loaded:', key, type);
+        });
+
         this.load.on('loaderror', (file) => {
-            console.warn('Failed to load:', file.key, file.src);
+            console.error('Failed to load:', file.key, file.src, file);
+        });
+
+        this.load.on('complete', () => {
+            console.log('All assets loaded. Textures:', this.textures.list);
         });
     }
 
