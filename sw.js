@@ -1,20 +1,20 @@
-const CACHE_NAME = 'leaf-learn-v1';
+const CACHE_NAME = 'leaf-learn-v2';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/css/styles.css',
-    '/js/game.js',
-    '/js/plants.js',
-    '/manifest.json',
-    '/images/monstera.jpg',
-    '/images/cymbidium.jpg',
-    '/images/schefflera.jpg',
-    '/images/bromeliad.jpg',
-    '/images/rhipsalis.jpg',
-    '/images/crassula.jpg',
-    '/images/sansevieria.jpg',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png',
+    './',
+    './index.html',
+    './css/styles.css',
+    './js/game.js',
+    './js/plants.js',
+    './manifest.json',
+    './images/monstera.jpg',
+    './images/cymbidium.jpg',
+    './images/schefflera.jpg',
+    './images/bromeliad.jpg',
+    './images/rhipsalis.jpg',
+    './images/crassula.jpg',
+    './images/sansevieria.jpg',
+    './icons/icon-192.png',
+    './icons/icon-512.png',
     'https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js',
     'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@400;600;700&display=swap'
 ];
@@ -73,7 +73,7 @@ self.addEventListener('fetch', (event) => {
             .catch(() => {
                 // Return offline fallback for navigation requests
                 if (event.request.mode === 'navigate') {
-                    return caches.match('/index.html');
+                    return caches.match('./index.html');
                 }
             })
     );
