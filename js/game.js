@@ -252,10 +252,15 @@ class BootScene extends Phaser.Scene {
             });
         }
 
-        // Transition to menu
+        // Transition to menu (or ResultsScene if ?celebrate param)
         this.cameras.main.fadeOut(500, 13, 31, 13);
         this.time.delayedCall(500, () => {
-            this.scene.start('MenuScene');
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('celebrate')) {
+                this.scene.start('ResultsScene');
+            } else {
+                this.scene.start('MenuScene');
+            }
         });
     }
 }
@@ -1008,7 +1013,18 @@ class ResultsScene extends Phaser.Scene {
     }
 
     init(data) {
-        this.roundData = data;
+        // Check for ?celebrate param to test celebration
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('celebrate')) {
+            this.roundData = {
+                score: 100,
+                correct: 10,
+                total: 10,
+                isNewHighScore: true
+            };
+        } else {
+            this.roundData = data;
+        }
     }
 
     create() {
@@ -1228,11 +1244,21 @@ class ResultsScene extends Phaser.Scene {
         }
 
         // Create star texture for extra flair
-        const starGfx = this.make.graphics({ x: 0, y: 0, add: false });
-        starGfx.fillStyle(0xffffff, 1);
-        starGfx.fillStar(10, 10, 5, 10, 4);
-        starGfx.generateTexture('star', 20, 20);
-        starGfx.destroy();
+        if (!this.textures.exists('star')) {
+            const starGfx = this.make.graphics({ x: 0, y: 0, add: false });
+            starGfx.fillStyle(0xffffff, 1);
+            // Draw a 5-pointed star manually
+            const cx = 10, cy = 10, outerR = 10, innerR = 4, points = 5;
+            const starPoints = [];
+            for (let i = 0; i < points * 2; i++) {
+                const r = i % 2 === 0 ? outerR : innerR;
+                const angle = (i * Math.PI / points) - Math.PI / 2;
+                starPoints.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) });
+            }
+            starGfx.fillPoints(starPoints, true);
+            starGfx.generateTexture('star', 20, 20);
+            starGfx.destroy();
+        }
 
         // Massive confetti explosion from multiple points
         const colors = [0xffd700, 0xff6b6b, 0x4ecdc4, 0x45b7d1, 0x96ceb4, 0xffeaa7, 0xdfe6e9, 0xe17055];
