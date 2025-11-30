@@ -1,4 +1,4 @@
-const CACHE_NAME = 'leaf-learn-v7';
+const CACHE_NAME = 'leaf-learn-v8';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -8,6 +8,13 @@ const ASSETS_TO_CACHE = [
     './manifest.json',
     './icons/icon-192.png',
     './icons/icon-512.png',
+    './images/monstera.jpg',
+    './images/cymbidium.jpg',
+    './images/schefflera.jpg',
+    './images/bromeliad.jpg',
+    './images/rhipsalis.jpg',
+    './images/crassula.jpg',
+    './images/sansevieria.jpg',
     'https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js',
     'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@400;600;700&display=swap'
 ];

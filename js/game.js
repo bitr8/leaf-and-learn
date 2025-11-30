@@ -195,14 +195,9 @@ class BootScene extends Phaser.Scene {
             loadingText.setText(`Loading... ${Math.round(value * 100)}%`);
         });
 
-        // Load plant images from Pexels CDN
-        this.load.setCORS('anonymous');
+        // Load plant images
         PLANTS.forEach(plant => {
             this.load.image(plant.id, plant.imageUrl);
-        });
-
-        this.load.on('loaderror', (file) => {
-            console.warn('Failed to load:', file.key);
         });
     }
 
