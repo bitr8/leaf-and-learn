@@ -39,6 +39,10 @@ php -S localhost:8000
 
 Then open `http://localhost:8000` in your browser.
 
+### Debug URL Parameters
+
+- `?celebrate` - Skip to the perfect score celebration screen for testing
+
 ## Installing as PWA
 
 On mobile or desktop, look for the "Install" prompt or use your browser's "Add to Home Screen" / "Install App" option.
