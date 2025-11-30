@@ -699,19 +699,16 @@ class QuizScene extends Phaser.Scene {
             imageKey = 'placeholder';
         }
 
-        // Image mask/frame
-        const maskShape = this.add.graphics();
-        maskShape.fillStyle(0xffffff);
-        maskShape.fillRoundedRect(-130, -95, 260, 180, 10);
-        this.cardContainer.add(maskShape);
+        // Image frame background
+        const imageFrame = this.add.graphics();
+        imageFrame.fillStyle(0xffffff);
+        imageFrame.fillRoundedRect(-130, -95, 260, 180, 10);
+        this.cardContainer.add(imageFrame);
 
+        // Add the plant image directly to container
         const image = this.add.image(0, -5, imageKey);
-        const scale = Math.min(260 / image.width, 180 / image.height);
+        const scale = Math.min(250 / image.width, 170 / image.height);
         image.setScale(scale);
-
-        const mask = maskShape.createGeometryMask();
-        image.setMask(mask);
-
         this.cardContainer.add(image);
 
         // Decorative corner accents
