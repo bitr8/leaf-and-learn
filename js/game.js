@@ -160,10 +160,6 @@ class BootScene extends Phaser.Scene {
     }
 
     preload() {
-        // Nothing to preload - we'll load base64 images in create()
-    }
-
-    create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
@@ -192,74 +188,60 @@ class BootScene extends Phaser.Scene {
             color: '#4a7c4a'
         }).setOrigin(0.5);
 
-        // Load base64 images manually
-        let loaded = 0;
-        const total = PLANTS.length;
+        // Load plant images using Phaser's loader
+        PLANTS.forEach(plant => {
+            this.load.image(plant.id, plant.image);
+        });
 
-        const loadImage = (plant) => {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    this.textures.addImage(plant.id, img);
-                    loaded++;
-                    const progress = loaded / total;
-                    progressBar.clear();
-                    progressBar.fillStyle(0xd4a84b, 1);
-                    progressBar.fillRoundedRect(barX, barY, barWidth * progress, barHeight, 3);
-                    loadingText.setText(`Loading... ${Math.round(progress * 100)}%`);
-                    resolve();
-                };
-                img.onerror = () => {
-                    console.error('Failed to load:', plant.id);
-                    loaded++;
-                    resolve();
-                };
-                img.src = plant.imageUrl;
-            });
-        };
+        // Update progress bar during loading
+        this.load.on('progress', (value) => {
+            progressBar.clear();
+            progressBar.fillStyle(0xd4a84b, 1);
+            progressBar.fillRoundedRect(barX, barY, barWidth * value, barHeight, 3);
+            loadingText.setText(`Loading... ${Math.round(value * 100)}%`);
+        });
+    }
 
-        // Load all images then continue
-        Promise.all(PLANTS.map(loadImage)).then(() => {
-            gameState = new GameState();
+    create() {
+        gameState = new GameState();
 
-            // Generate placeholder texture
-            const graphics = this.make.graphics({ x: 0, y: 0, add: false });
-            graphics.fillStyle(0x2d4a2d, 1);
-            graphics.fillRect(0, 0, 300, 300);
+        // Generate placeholder texture
+        const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+        graphics.fillStyle(0x2d4a2d, 1);
+        graphics.fillRect(0, 0, 300, 300);
 
-            // Leaf pattern
-            graphics.fillStyle(0x4a7c4a, 0.3);
-            for (let i = 0; i < 5; i++) {
-                graphics.fillCircle(50 + i * 50, 150, 30 + Math.random() * 20);
-            }
+        // Leaf pattern
+        graphics.fillStyle(0x4a7c4a, 0.3);
+        for (let i = 0; i < 5; i++) {
+            graphics.fillCircle(50 + i * 50, 150, 30 + Math.random() * 20);
+        }
 
-            graphics.fillStyle(0x1a2e1a, 1);
-            graphics.fillCircle(150, 150, 40);
+        graphics.fillStyle(0x1a2e1a, 1);
+        graphics.fillCircle(150, 150, 40);
 
-            const leafShape = new Phaser.Geom.Polygon([
-                150, 100,
-                120, 140,
-                130, 180,
-                150, 200,
-                170, 180,
-                180, 140
-            ]);
-            graphics.fillStyle(0x4a7c4a, 1);
-            graphics.fillPoints(leafShape.points, true);
+        const leafShape = new Phaser.Geom.Polygon([
+            150, 100,
+            120, 140,
+            130, 180,
+            150, 200,
+            170, 180,
+            180, 140
+        ]);
+        graphics.fillStyle(0x4a7c4a, 1);
+        graphics.fillPoints(leafShape.points, true);
 
-            graphics.generateTexture('placeholder', 300, 300);
-            graphics.destroy();
+        graphics.generateTexture('placeholder', 300, 300);
+        graphics.destroy();
 
-            // Create gradient textures
-            createGradientTexture(this, 'cardGradient', 300, 250, [0xfaf9f6, 0xf5f2eb, 0xebe5d9]);
-            createGradientTexture(this, 'buttonGradient', 320, 60, [0xd97b5a, 0xc75d38]);
-            createGradientTexture(this, 'buttonSecondary', 320, 60, [0x4a7c4a, 0x2d4a2d]);
+        // Create gradient textures
+        createGradientTexture(this, 'cardGradient', 300, 250, [0xfaf9f6, 0xf5f2eb, 0xebe5d9]);
+        createGradientTexture(this, 'buttonGradient', 320, 60, [0xd97b5a, 0xc75d38]);
+        createGradientTexture(this, 'buttonSecondary', 320, 60, [0x4a7c4a, 0x2d4a2d]);
 
-            // Transition to menu
-            this.cameras.main.fadeOut(500, 13, 31, 13);
-            this.time.delayedCall(500, () => {
-                this.scene.start('MenuScene');
-            });
+        // Transition to menu
+        this.cameras.main.fadeOut(500, 13, 31, 13);
+        this.time.delayedCall(500, () => {
+            this.scene.start('MenuScene');
         });
     }
 }
