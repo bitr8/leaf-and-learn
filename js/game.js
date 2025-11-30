@@ -707,9 +707,13 @@ class QuizScene extends Phaser.Scene {
 
         // Add the plant image directly to container
         const image = this.add.image(0, -5, imageKey);
+        console.log('Image dimensions:', imageKey, image.width, image.height);
         const scale = Math.min(250 / image.width, 170 / image.height);
+        console.log('Calculated scale:', scale);
         image.setScale(scale);
+        image.setOrigin(0.5, 0.5);
         this.cardContainer.add(image);
+        console.log('Image added to container at:', image.x, image.y, 'scale:', image.scaleX);
 
         // Decorative corner accents
         const accent = this.add.graphics();
