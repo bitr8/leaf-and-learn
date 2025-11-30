@@ -197,7 +197,19 @@ class BootScene extends Phaser.Scene {
 
         // Load plant images
         PLANTS.forEach(plant => {
+            console.log('Queuing load:', plant.id, plant.imageUrl);
             this.load.image(plant.id, plant.imageUrl);
+        });
+
+        this.load.on('loaderror', (file) => {
+            console.error('Failed to load:', file.key, file.src);
+        });
+
+        this.load.on('complete', () => {
+            console.log('All assets loaded');
+            PLANTS.forEach(plant => {
+                console.log('Texture exists:', plant.id, this.textures.exists(plant.id));
+            });
         });
     }
 
