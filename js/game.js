@@ -197,19 +197,7 @@ class BootScene extends Phaser.Scene {
 
         // Load plant images
         PLANTS.forEach(plant => {
-            console.log('Queuing load:', plant.id, plant.imageUrl);
             this.load.image(plant.id, plant.imageUrl);
-        });
-
-        this.load.on('loaderror', (file) => {
-            console.error('Failed to load:', file.key, file.src);
-        });
-
-        this.load.on('complete', () => {
-            console.log('All assets loaded');
-            PLANTS.forEach(plant => {
-                console.log('Texture exists:', plant.id, this.textures.exists(plant.id));
-            });
         });
     }
 
@@ -707,13 +695,10 @@ class QuizScene extends Phaser.Scene {
 
         // Add the plant image directly to container
         const image = this.add.image(0, -5, imageKey);
-        console.log('Image dimensions:', imageKey, image.width, image.height);
         const scale = Math.min(250 / image.width, 170 / image.height);
-        console.log('Calculated scale:', scale);
         image.setScale(scale);
         image.setOrigin(0.5, 0.5);
         this.cardContainer.add(image);
-        console.log('Image added to container at:', image.x, image.y, 'scale:', image.scaleX);
 
         // Decorative corner accents
         const accent = this.add.graphics();
