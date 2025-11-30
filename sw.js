@@ -1,4 +1,4 @@
-const CACHE_NAME = 'leaf-learn-v16';
+const CACHE_NAME = 'leaf-learn-v17';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -15,6 +15,7 @@ const ASSETS_TO_CACHE = [
     './images/rhipsalis.jpg',
     './images/crassula.jpg',
     './images/sansevieria.jpg',
+    './images/cheerleader-jump.png',
     'https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js',
     'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@400;600;700&display=swap'
 ];

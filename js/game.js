@@ -199,6 +199,12 @@ class BootScene extends Phaser.Scene {
         PLANTS.forEach(plant => {
             this.load.image(plant.id, plant.imageUrl);
         });
+
+        // Load cheerleader spritesheet for perfect score celebration
+        this.load.spritesheet('cheerleader', './images/cheerleader-jump.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
     }
 
     create() {
@@ -235,6 +241,16 @@ class BootScene extends Phaser.Scene {
         createGradientTexture(this, 'cardGradient', 300, 250, [0xfaf9f6, 0xf5f2eb, 0xebe5d9]);
         createGradientTexture(this, 'buttonGradient', 320, 60, [0xd97b5a, 0xc75d38]);
         createGradientTexture(this, 'buttonSecondary', 320, 60, [0x4a7c4a, 0x2d4a2d]);
+
+        // Create cheerleader jump animation
+        if (this.textures.exists('cheerleader')) {
+            this.anims.create({
+                key: 'cheerleader-jump',
+                frames: this.anims.generateFrameNumbers('cheerleader', { start: 0, end: 7 }),
+                frameRate: 12,
+                repeat: -1
+            });
+        }
 
         // Transition to menu
         this.cameras.main.fadeOut(500, 13, 31, 13);
@@ -1337,6 +1353,43 @@ class ResultsScene extends Phaser.Scene {
                     duration: 2500,
                     ease: 'Sine.easeOut',
                     onComplete: () => emoji.destroy()
+                });
+            });
+        }
+
+        // Dancing cheerleaders!
+        if (this.anims.exists('cheerleader-jump')) {
+            const leftCheerleader = this.add.sprite(80, height - 60, 'cheerleader')
+                .setScale(2.5)
+                .setFlipX(false)
+                .play('cheerleader-jump');
+
+            const rightCheerleader = this.add.sprite(width - 80, height - 60, 'cheerleader')
+                .setScale(2.5)
+                .setFlipX(true)
+                .play('cheerleader-jump');
+
+            // Bounce them up and down
+            this.tweens.add({
+                targets: [leftCheerleader, rightCheerleader],
+                y: height - 80,
+                duration: 300,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+
+            // Clean up after celebration
+            this.time.delayedCall(6000, () => {
+                this.tweens.add({
+                    targets: [leftCheerleader, rightCheerleader],
+                    alpha: 0,
+                    y: height + 50,
+                    duration: 500,
+                    onComplete: () => {
+                        leftCheerleader.destroy();
+                        rightCheerleader.destroy();
+                    }
                 });
             });
         }
