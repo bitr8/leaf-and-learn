@@ -1052,8 +1052,10 @@ class ResultsScene extends Phaser.Scene {
 
         this.cameras.main.fadeIn(400, 13, 31, 13);
 
-        // Celebration particles for high score
-        if (this.roundData.isNewHighScore) {
+        // PERFECT SCORE - go over the top!
+        if (this.roundData.score >= 100) {
+            this.createPerfectScoreCelebration();
+        } else if (this.roundData.isNewHighScore) {
             this.createCelebration();
         }
     }
@@ -1181,6 +1183,181 @@ class ResultsScene extends Phaser.Scene {
 
         this.time.delayedCall(2000, () => {
             emitter.stop();
+        });
+    }
+
+    createPerfectScoreCelebration() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        // Screen flash
+        const flash = this.add.rectangle(width/2, height/2, width, height, 0xffd700, 0.8);
+        this.tweens.add({
+            targets: flash,
+            alpha: 0,
+            duration: 500,
+            ease: 'Power2'
+        });
+
+        // Camera shake
+        this.cameras.main.shake(500, 0.02);
+
+        // Create confetti texture
+        if (!this.textures.exists('confetti')) {
+            const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+            graphics.fillStyle(0xffffff, 1);
+            graphics.fillCircle(6, 6, 6);
+            graphics.generateTexture('confetti', 12, 12);
+            graphics.destroy();
+        }
+
+        // Create star texture for extra flair
+        const starGfx = this.make.graphics({ x: 0, y: 0, add: false });
+        starGfx.fillStyle(0xffffff, 1);
+        starGfx.fillStar(10, 10, 5, 10, 4);
+        starGfx.generateTexture('star', 20, 20);
+        starGfx.destroy();
+
+        // Massive confetti explosion from multiple points
+        const colors = [0xffd700, 0xff6b6b, 0x4ecdc4, 0x45b7d1, 0x96ceb4, 0xffeaa7, 0xdfe6e9, 0xe17055];
+
+        // Left side burst
+        const leftEmitter = this.add.particles(0, height, 'confetti', {
+            speed: { min: 300, max: 500 },
+            angle: { min: -60, max: -30 },
+            scale: { start: 0.8, end: 0.2 },
+            lifespan: 3000,
+            gravityY: 200,
+            tint: colors,
+            frequency: 20,
+            quantity: 5,
+            rotate: { min: 0, max: 360 }
+        });
+
+        // Right side burst
+        const rightEmitter = this.add.particles(width, height, 'confetti', {
+            speed: { min: 300, max: 500 },
+            angle: { min: -150, max: -120 },
+            scale: { start: 0.8, end: 0.2 },
+            lifespan: 3000,
+            gravityY: 200,
+            tint: colors,
+            frequency: 20,
+            quantity: 5,
+            rotate: { min: 0, max: 360 }
+        });
+
+        // Center explosion
+        const centerEmitter = this.add.particles(width/2, height * 0.3, 'star', {
+            speed: { min: 200, max: 400 },
+            angle: { min: 0, max: 360 },
+            scale: { start: 1, end: 0 },
+            lifespan: 2500,
+            gravityY: 100,
+            tint: [0xffd700, 0xffa500, 0xffff00],
+            frequency: 30,
+            quantity: 3,
+            rotate: { min: 0, max: 360 }
+        });
+
+        // Raining confetti from top
+        const rainEmitter = this.add.particles(width/2, -20, 'confetti', {
+            speed: { min: 50, max: 150 },
+            angle: { min: 85, max: 95 },
+            scale: { start: 0.6, end: 0.1 },
+            lifespan: 4000,
+            gravityY: 100,
+            tint: colors,
+            frequency: 15,
+            quantity: 4,
+            emitZone: { type: 'random', source: new Phaser.Geom.Rectangle(-width/2, 0, width, 10) }
+        });
+
+        // PERFECT! text with epic animation
+        const perfectText = this.add.text(width/2, height * 0.5, 'FUCK YEAH!', {
+            fontFamily: 'Fraunces, Georgia, serif',
+            fontSize: '72px',
+            color: '#ffd700',
+            fontStyle: '700',
+            stroke: '#000000',
+            strokeThickness: 6
+        }).setOrigin(0.5).setAlpha(0).setScale(0.1);
+
+        // Bring to front
+        perfectText.setDepth(100);
+
+        // Epic entrance animation
+        this.tweens.add({
+            targets: perfectText,
+            alpha: 1,
+            scale: 1.2,
+            duration: 400,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                // Pulsing glow effect
+                this.tweens.add({
+                    targets: perfectText,
+                    scale: 1.3,
+                    duration: 300,
+                    yoyo: true,
+                    repeat: 5,
+                    ease: 'Sine.easeInOut'
+                });
+
+                // Color cycling
+                let colorIndex = 0;
+                const textColors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#ffa500', '#45b7d1'];
+                this.time.addEvent({
+                    delay: 150,
+                    repeat: 15,
+                    callback: () => {
+                        perfectText.setColor(textColors[colorIndex % textColors.length]);
+                        colorIndex++;
+                    }
+                });
+            }
+        });
+
+        // Floating emoji celebration
+        const emojis = ['🌟', '✨', '🎉', '🏆', '💫', '🌿', '🍀', '💯'];
+        for (let i = 0; i < 12; i++) {
+            this.time.delayedCall(i * 150, () => {
+                const emoji = this.add.text(
+                    Phaser.Math.Between(50, width - 50),
+                    height + 50,
+                    emojis[Phaser.Math.Between(0, emojis.length - 1)],
+                    { fontSize: '48px' }
+                ).setOrigin(0.5);
+
+                this.tweens.add({
+                    targets: emoji,
+                    y: -50,
+                    x: emoji.x + Phaser.Math.Between(-100, 100),
+                    rotation: Phaser.Math.Between(-2, 2),
+                    duration: 2500,
+                    ease: 'Sine.easeOut',
+                    onComplete: () => emoji.destroy()
+                });
+            });
+        }
+
+        // Stop emitters after celebration
+        this.time.delayedCall(3000, () => {
+            leftEmitter.stop();
+            rightEmitter.stop();
+            centerEmitter.stop();
+        });
+
+        this.time.delayedCall(5000, () => {
+            rainEmitter.stop();
+            // Fade out PERFECT text
+            this.tweens.add({
+                targets: perfectText,
+                alpha: 0,
+                y: perfectText.y - 50,
+                duration: 500,
+                onComplete: () => perfectText.destroy()
+            });
         });
     }
 
