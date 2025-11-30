@@ -1013,6 +1013,10 @@ class ResultsScene extends Phaser.Scene {
     }
 
     init(data) {
+        this.roundData = data;
+    }
+
+    create() {
         // Check for ?celebrate param to test celebration
         const params = new URLSearchParams(window.location.search);
         if (params.has('celebrate')) {
@@ -1022,12 +1026,7 @@ class ResultsScene extends Phaser.Scene {
                 total: 10,
                 isNewHighScore: true
             };
-        } else {
-            this.roundData = data;
         }
-    }
-
-    create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
