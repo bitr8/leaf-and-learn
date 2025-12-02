@@ -180,7 +180,7 @@ class SoundManager {
 // ============================================
 class HapticManager {
     constructor() {
-        this.enabled = 'vibrate' in navigator;
+        this.enabled = typeof navigator.vibrate === 'function';
     }
 
     light() {
