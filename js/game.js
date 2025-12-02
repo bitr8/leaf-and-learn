@@ -23,15 +23,26 @@ const CONFIG = {
 
     // Animations
     FADE_DURATION: 400,
-    BUTTON_STAGGER_DELAY: 60,
-    CARD_FLIP_DURATION: 400,
+    BUTTON_STAGGER_DELAY: 50,
+    CARD_FLIP_DURATION: 350,
+    BUTTON_PRESS_SCALE: 0.96,
 
     // UI dimensions
-    CARD_WIDTH: 300,
-    CARD_HEIGHT: 230,
+    CARD_WIDTH: 280,
+    CARD_HEIGHT: 210,
     BUTTON_WIDTH: 260,
     BUTTON_HEIGHT: 56,
-    ANSWER_BUTTON_HEIGHT: 54,
+    ANSWER_BUTTON_HEIGHT: 50,
+    ANSWER_BUTTON_SPACING: 8,
+
+    // Layout (percentage of height)
+    LAYOUT: {
+        HEADER_HEIGHT: 70,
+        CARD_CENTER_Y: 0.32,
+        BUTTONS_START_Y: 0.56,
+        FEEDBACK_Y: 0.92,
+        HINT_OFFSET_X: 55, // From right edge
+    },
 
     // Streak thresholds
     STREAK_FIRE: 5,
@@ -940,23 +951,20 @@ class QuizScene extends Phaser.Scene {
         // Header
         this.createHeader();
 
-        // Card area
-        this.cardContainer = this.add.container(width / 2, height * 0.36);
+        // Card area - positioned higher to make room for buttons
+        this.cardContainer = this.add.container(width / 2, height * CONFIG.LAYOUT.CARD_CENTER_Y);
 
-        // Buttons area
-        this.buttonsContainer = this.add.container(0, height * 0.64);
+        // Buttons area - starts after card with proper spacing
+        this.buttonsContainer = this.add.container(0, height * CONFIG.LAYOUT.BUTTONS_START_Y);
 
-        // Hint button
-        this.createHintButton();
-
-        // Feedback area
-        this.feedbackContainer = this.add.container(width / 2, height * 0.88);
+        // Feedback area - at bottom
+        this.feedbackContainer = this.add.container(width / 2, height * CONFIG.LAYOUT.FEEDBACK_Y);
         this.feedbackContainer.setAlpha(0);
 
-        // Continue prompt
-        this.continueText = this.add.text(width / 2, height * 0.96, 'Tap or press Enter to continue', {
+        // Continue prompt - subtle pulsing hint
+        this.continueText = this.add.text(width / 2, height - 25, 'Tap to continue', {
             fontFamily: 'DM Sans, sans-serif',
-            fontSize: '13px',
+            fontSize: '12px',
             color: '#4a7c4a',
             fontStyle: 'italic'
         }).setOrigin(0.5).setAlpha(0);
@@ -1030,76 +1038,116 @@ class QuizScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const colors = getActiveColors();
 
-        // Header background
+        // Header background with subtle gradient
         const headerBg = this.add.graphics();
-        headerBg.fillStyle(colors.darkGreen, 0.4);
-        headerBg.fillRect(0, 0, width, 75);
+        headerBg.fillStyle(colors.darkGreen, 0.5);
+        headerBg.fillRect(0, 0, width, CONFIG.LAYOUT.HEADER_HEIGHT);
 
-        // Progress bar
-        const barWidth = width - 40;
+        // Progress bar - shorter to make room for hint button
+        const barWidth = width - 100; // Leave room for hint button
         const barX = 20;
-        const barY = 18;
+        const barY = 16;
 
         const progressBg = this.add.graphics();
-        progressBg.fillStyle(colors.sageGreen, 1);
-        progressBg.fillRoundedRect(barX, barY, barWidth, 8, 4);
+        progressBg.fillStyle(colors.sageGreen, 0.6);
+        progressBg.fillRoundedRect(barX, barY, barWidth, 6, 3);
 
         this.progressFill = this.add.graphics();
 
-        // Question counter
-        this.questionText = this.add.text(width / 2, barY + 4, '', {
+        // Question counter - positioned above the bar
+        this.questionText = this.add.text(barX, barY - 2, '', {
             fontFamily: 'DM Sans, sans-serif',
-            fontSize: '11px',
-            color: '#0d1f0d',
-            fontStyle: '700'
-        }).setOrigin(0.5).setDepth(1);
+            fontSize: '10px',
+            color: '#7eb07e',
+            fontStyle: '600'
+        }).setOrigin(0, 1);
 
-        // Score
-        this.scoreText = this.add.text(20, 45, `Score: ${this.score}`, {
+        // Score with icon
+        this.scoreText = this.add.text(20, 42, `⭐ ${this.score}`, {
             fontFamily: 'DM Sans, sans-serif',
-            fontSize: '16px',
+            fontSize: '15px',
             color: '#f5f2eb',
+            fontStyle: '600'
+        });
+
+        // Streak indicator - compact
+        this.streakText = this.add.text(20, 58, this.getStreakDisplay(), {
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '12px',
+            color: '#d4a84b',
             fontStyle: '500'
         });
 
-        // Streak
-        this.streakText = this.add.text(width - 20, 45, this.getStreakDisplay(), {
-            fontFamily: 'DM Sans, sans-serif',
-            fontSize: '16px',
-            color: '#d4a84b',
-            fontStyle: '500'
-        }).setOrigin(1, 0);
+        // Hint button in header
+        this.createHintButton();
 
         this.updateProgress();
     }
 
     createHintButton() {
         const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
 
-        this.hintButton = this.add.container(width - 50, height * 0.58);
+        // Position hint button in header area, right side
+        this.hintButton = this.add.container(width - CONFIG.LAYOUT.HINT_OFFSET_X, 45);
 
+        // Pill-shaped background
         const hintBg = this.add.graphics();
-        hintBg.fillStyle(COLORS.gold, 0.8);
-        hintBg.fillCircle(0, 0, 22);
+        hintBg.fillStyle(COLORS.gold, 0.9);
+        hintBg.fillRoundedRect(-35, -14, 70, 28, 14);
         this.hintButton.add(hintBg);
 
-        const hintText = this.add.text(0, 0, '💡', { fontSize: '20px' }).setOrigin(0.5);
+        // Glow effect
+        const hintGlow = this.add.graphics();
+        hintGlow.fillStyle(COLORS.gold, 0.2);
+        hintGlow.fillRoundedRect(-38, -17, 76, 34, 17);
+        this.hintButton.add(hintGlow);
+        this.hintButton.sendToBack(hintGlow);
+
+        const hintText = this.add.text(0, 0, '💡 Hint', {
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '13px',
+            color: '#1a2e1a',
+            fontStyle: '600'
+        }).setOrigin(0.5);
         this.hintButton.add(hintText);
 
-        const hintLabel = this.add.text(0, 30, 'Hint (H)', {
-            fontFamily: 'DM Sans, sans-serif',
-            fontSize: '10px',
-            color: '#7eb07e'
-        }).setOrigin(0.5);
-        this.hintButton.add(hintLabel);
-
-        this.hintButton.setSize(44, 44);
+        this.hintButton.setSize(70, 28);
         this.hintButton.setInteractive({ useHandCursor: true });
+        this.hintButton.hintBg = hintBg;
+        this.hintButton.hintGlow = hintGlow;
+
+        // Hover effect
+        this.hintButton.on('pointerover', () => {
+            if (!this.hintUsed && !this.answered) {
+                this.tweens.add({
+                    targets: this.hintButton,
+                    scaleX: 1.05,
+                    scaleY: 1.05,
+                    duration: 100
+                });
+            }
+        });
+
+        this.hintButton.on('pointerout', () => {
+            this.tweens.add({
+                targets: this.hintButton,
+                scaleX: 1,
+                scaleY: 1,
+                duration: 100
+            });
+        });
 
         this.hintButton.on('pointerdown', () => {
             if (!this.answered && !this.hintUsed) {
-                this.useHint();
+                // Press effect
+                this.tweens.add({
+                    targets: this.hintButton,
+                    scaleX: 0.95,
+                    scaleY: 0.95,
+                    duration: 50,
+                    yoyo: true,
+                    onComplete: () => this.useHint()
+                });
             }
         });
     }
@@ -1111,41 +1159,50 @@ class QuizScene extends Phaser.Scene {
         soundManager.hint();
         hapticManager.light();
 
-        // Eliminate two wrong answers
+        // Eliminate two wrong answers with staggered animation
         const wrongButtons = this.buttons.filter(b => !b.answer.isCorrect);
         Phaser.Utils.Array.Shuffle(wrongButtons);
 
-        wrongButtons.slice(0, 2).forEach(button => {
-            this.tweens.add({
-                targets: button,
-                alpha: 0.3,
-                duration: 300
+        wrongButtons.slice(0, 2).forEach((button, index) => {
+            this.time.delayedCall(index * 150, () => {
+                // Strikethrough effect
+                const w = button.width;
+                const strikethrough = this.add.graphics();
+                strikethrough.lineStyle(2, COLORS.terracotta, 0.8);
+                strikethrough.lineBetween(-w/2 + 40, 0, w/2 - 20, 0);
+                button.add(strikethrough);
+
+                this.tweens.add({
+                    targets: button,
+                    alpha: 0.35,
+                    duration: 250,
+                    ease: 'Power2'
+                });
+                button.disableInteractive();
+                button.eliminated = true;
             });
-            button.disableInteractive();
-            button.eliminated = true;
         });
 
-        // Dim the hint button
-        this.tweens.add({
-            targets: this.hintButton,
-            alpha: 0.3,
-            duration: 200
-        });
+        // Transform hint button to show "used" state
+        this.hintButton.hintBg.clear();
+        this.hintButton.hintBg.fillStyle(COLORS.sageGreen, 0.4);
+        this.hintButton.hintBg.fillRoundedRect(-35, -14, 70, 28, 14);
+        this.hintButton.hintGlow.clear();
 
-        // Show penalty notice
-        const width = this.cameras.main.width;
-        const penaltyText = this.add.text(width / 2, this.cameras.main.height * 0.58, `-${CONFIG.HINT_PENALTY} pts`, {
+        // Show penalty notice near score
+        const penaltyText = this.add.text(100, 42, `-${CONFIG.HINT_PENALTY}`, {
             fontFamily: 'DM Sans, sans-serif',
-            fontSize: '14px',
+            fontSize: '13px',
             color: '#c75d38',
-            fontStyle: '600'
-        }).setOrigin(0.5);
+            fontStyle: '700'
+        }).setOrigin(0, 0.5);
 
         this.tweens.add({
             targets: penaltyText,
-            y: penaltyText.y - 30,
+            x: penaltyText.x + 20,
             alpha: 0,
-            duration: 1000,
+            duration: 1200,
+            ease: 'Power2',
             onComplete: () => penaltyText.destroy()
         });
     }
@@ -1161,19 +1218,14 @@ class QuizScene extends Phaser.Scene {
     updateProgress() {
         const width = this.cameras.main.width;
         const progress = this.currentQuestion / this.totalQuestions;
-        const barWidth = width - 40;
+        const barWidth = width - 100;
         const colors = getActiveColors();
 
         this.progressFill.clear();
         this.progressFill.fillStyle(colors.gold, 1);
-        this.progressFill.fillRoundedRect(20, 18, barWidth * progress, 8, 4);
+        this.progressFill.fillRoundedRect(20, 16, barWidth * progress, 6, 3);
 
-        this.questionText.setText(`${this.currentQuestion}/${this.totalQuestions}`);
-        this.questionText.setX(20 + barWidth * progress);
-
-        if (progress > 0.05 && progress < 0.95) {
-            this.questionText.setVisible(true);
-        }
+        this.questionText.setText(`Question ${this.currentQuestion} of ${this.totalQuestions}`);
     }
 
     createParticleEffects() {
@@ -1206,9 +1258,16 @@ class QuizScene extends Phaser.Scene {
             return;
         }
 
-        // Reset hint button
+        // Reset hint button to fresh state
         if (this.hintButton) {
             this.hintButton.setAlpha(1);
+            this.hintButton.setScale(1);
+            this.hintButton.hintBg.clear();
+            this.hintButton.hintBg.fillStyle(COLORS.gold, 0.9);
+            this.hintButton.hintBg.fillRoundedRect(-35, -14, 70, 28, 14);
+            this.hintButton.hintGlow.clear();
+            this.hintButton.hintGlow.fillStyle(COLORS.gold, 0.2);
+            this.hintButton.hintGlow.fillRoundedRect(-38, -17, 76, 34, 17);
         }
 
         // Select plant with spaced repetition
@@ -1242,20 +1301,20 @@ class QuizScene extends Phaser.Scene {
         const cardHeight = CONFIG.CARD_HEIGHT;
         const colors = getActiveColors();
 
-        // Card shadow
+        // Card shadow - softer
         const shadow = this.add.graphics();
-        shadow.fillStyle(0x000000, 0.2);
-        shadow.fillRoundedRect(-cardWidth/2 + 6, -cardHeight/2 + 6, cardWidth, cardHeight, 16);
+        shadow.fillStyle(0x000000, 0.15);
+        shadow.fillRoundedRect(-cardWidth/2 + 4, -cardHeight/2 + 4, cardWidth, cardHeight, 14);
         this.cardContainer.add(shadow);
 
         // Card background
         const cardBg = this.add.graphics();
         cardBg.fillStyle(colors.cream, 1);
-        cardBg.fillRoundedRect(-cardWidth/2, -cardHeight/2, cardWidth, cardHeight, 16);
+        cardBg.fillRoundedRect(-cardWidth/2, -cardHeight/2, cardWidth, cardHeight, 14);
 
-        // Inner frame
-        cardBg.lineStyle(3, colors.sageGreen, 0.3);
-        cardBg.strokeRoundedRect(-cardWidth/2 + 8, -cardHeight/2 + 8, cardWidth - 16, cardHeight - 16, 12);
+        // Subtle inner border
+        cardBg.lineStyle(1, colors.sageGreen, 0.2);
+        cardBg.strokeRoundedRect(-cardWidth/2 + 6, -cardHeight/2 + 6, cardWidth - 12, cardHeight - 12, 10);
 
         this.cardContainer.add(cardBg);
 
@@ -1265,26 +1324,28 @@ class QuizScene extends Phaser.Scene {
             imageKey = 'placeholder';
         }
 
-        // Image frame background
+        // Image area - proportional to card
+        const imgWidth = cardWidth - 30;
+        const imgHeight = cardHeight - 25;
         const imageFrame = this.add.graphics();
-        imageFrame.fillStyle(0xffffff);
-        imageFrame.fillRoundedRect(-130, -95, 260, 180, 10);
+        imageFrame.fillStyle(0xffffff, 1);
+        imageFrame.fillRoundedRect(-imgWidth/2, -imgHeight/2 - 3, imgWidth, imgHeight, 8);
         this.cardContainer.add(imageFrame);
 
-        // Add the plant image directly to container
-        const image = this.add.image(0, -5, imageKey);
-        const scale = Math.min(250 / image.width, 170 / image.height);
+        // Add the plant image
+        const image = this.add.image(0, -3, imageKey);
+        const scale = Math.min((imgWidth - 10) / image.width, (imgHeight - 10) / image.height);
         image.setScale(scale);
         image.setOrigin(0.5, 0.5);
         this.cardContainer.add(image);
 
-        // Decorative corner accents
+        // Subtle corner accents
         const accent = this.add.graphics();
-        accent.lineStyle(2, colors.gold, 0.5);
-        accent.lineBetween(-cardWidth/2 + 12, -cardHeight/2 + 30, -cardWidth/2 + 12, -cardHeight/2 + 12);
-        accent.lineBetween(-cardWidth/2 + 12, -cardHeight/2 + 12, -cardWidth/2 + 30, -cardHeight/2 + 12);
-        accent.lineBetween(cardWidth/2 - 12, cardHeight/2 - 30, cardWidth/2 - 12, cardHeight/2 - 12);
-        accent.lineBetween(cardWidth/2 - 12, cardHeight/2 - 12, cardWidth/2 - 30, cardHeight/2 - 12);
+        accent.lineStyle(1.5, colors.gold, 0.4);
+        accent.lineBetween(-cardWidth/2 + 10, -cardHeight/2 + 25, -cardWidth/2 + 10, -cardHeight/2 + 10);
+        accent.lineBetween(-cardWidth/2 + 10, -cardHeight/2 + 10, -cardWidth/2 + 25, -cardHeight/2 + 10);
+        accent.lineBetween(cardWidth/2 - 10, cardHeight/2 - 25, cardWidth/2 - 10, cardHeight/2 - 10);
+        accent.lineBetween(cardWidth/2 - 10, cardHeight/2 - 10, cardWidth/2 - 25, cardHeight/2 - 10);
         this.cardContainer.add(accent);
 
         // Flip animation
@@ -1309,9 +1370,9 @@ class QuizScene extends Phaser.Scene {
         const answers = this.getAnswerOptions();
         Phaser.Utils.Array.Shuffle(answers);
 
-        const buttonWidth = width - 32;
+        const buttonWidth = width - 28;
         const buttonHeight = CONFIG.ANSWER_BUTTON_HEIGHT;
-        const spacing = 10;
+        const spacing = CONFIG.ANSWER_BUTTON_SPACING;
 
         answers.forEach((answer, index) => {
             const y = index * (buttonHeight + spacing);
@@ -1319,15 +1380,18 @@ class QuizScene extends Phaser.Scene {
             this.buttonsContainer.add(button);
             this.buttons.push(button);
 
-            // Staggered entrance animation
+            // Staggered entrance animation with subtle bounce
             button.setAlpha(0);
-            button.y = y + 40;
+            button.setScale(0.95);
+            button.y = y + 30;
             this.tweens.add({
                 targets: button,
                 alpha: 1,
+                scaleX: 1,
+                scaleY: 1,
                 y: y,
-                duration: 250,
-                delay: 200 + index * CONFIG.BUTTON_STAGGER_DELAY,
+                duration: 280,
+                delay: 150 + index * CONFIG.BUTTON_STAGGER_DELAY,
                 ease: 'Back.easeOut'
             });
         });
@@ -1356,37 +1420,42 @@ class QuizScene extends Phaser.Scene {
         const button = this.add.container(x, y);
         const colors = getActiveColors();
 
-        // Shadow
+        // Shadow - more subtle
         const shadow = this.add.graphics();
-        shadow.fillStyle(0x000000, 0.15);
-        shadow.fillRoundedRect(-width/2 + 3, -height/2 + 3, width, height, 12);
+        shadow.fillStyle(0x000000, 0.12);
+        shadow.fillRoundedRect(-width/2 + 2, -height/2 + 2, width, height, 10);
         button.add(shadow);
 
-        // Background
+        // Background with gradient feel
         const bg = this.add.graphics();
         bg.fillStyle(colors.warmWhite, 1);
-        bg.fillRoundedRect(-width/2, -height/2, width, height, 12);
-        bg.lineStyle(2, colors.sageGreen, 0.4);
-        bg.strokeRoundedRect(-width/2, -height/2, width, height, 12);
+        bg.fillRoundedRect(-width/2, -height/2, width, height, 10);
+        bg.lineStyle(1.5, colors.sageGreen, 0.3);
+        bg.strokeRoundedRect(-width/2, -height/2, width, height, 10);
         button.add(bg);
 
-        // Number badge
-        const numberBadge = this.add.text(-width/2 + 20, 0, String(number), {
+        // Number badge - circular
+        const badgeBg = this.add.graphics();
+        badgeBg.fillStyle(colors.sageGreen, 0.15);
+        badgeBg.fillCircle(-width/2 + 22, 0, 12);
+        button.add(badgeBg);
+
+        const numberBadge = this.add.text(-width/2 + 22, 0, String(number), {
             fontFamily: 'DM Sans, sans-serif',
-            fontSize: '12px',
-            color: '#7eb07e',
-            fontStyle: '600'
+            fontSize: '11px',
+            color: '#4a7c4a',
+            fontStyle: '700'
         }).setOrigin(0.5);
         button.add(numberBadge);
 
-        // Text
-        const label = this.add.text(10, 0, answer.text, {
+        // Text - centered better
+        const label = this.add.text(15, 0, answer.text, {
             fontFamily: 'DM Sans, sans-serif',
-            fontSize: '15px',
+            fontSize: '14px',
             color: '#1a2e1a',
             fontStyle: '500',
             align: 'center',
-            wordWrap: { width: width - 60 }
+            wordWrap: { width: width - 70 }
         }).setOrigin(0.5);
         button.add(label);
 
@@ -1398,23 +1467,29 @@ class QuizScene extends Phaser.Scene {
         button.shadow = shadow;
         button.label = label;
         button.numberBadge = numberBadge;
+        button.badgeBg = badgeBg;
         button.width = width;
         button.height = height;
 
+        // Hover - lift effect
         button.on('pointerover', () => {
             if (!this.answered && !button.eliminated) {
                 this.tweens.add({
                     targets: button,
-                    scaleX: 1.02,
-                    scaleY: 1.02,
-                    duration: 100
+                    scaleX: 1.015,
+                    scaleY: 1.015,
+                    duration: 80
                 });
-                // Glow effect
+                // Golden glow
                 bg.clear();
                 bg.fillStyle(colors.warmWhite, 1);
-                bg.fillRoundedRect(-width/2, -height/2, width, height, 12);
-                bg.lineStyle(3, colors.gold, 0.6);
-                bg.strokeRoundedRect(-width/2, -height/2, width, height, 12);
+                bg.fillRoundedRect(-width/2, -height/2, width, height, 10);
+                bg.lineStyle(2, colors.gold, 0.7);
+                bg.strokeRoundedRect(-width/2, -height/2, width, height, 10);
+                // Subtle shadow lift
+                shadow.clear();
+                shadow.fillStyle(0x000000, 0.18);
+                shadow.fillRoundedRect(-width/2 + 3, -height/2 + 4, width, height, 10);
             }
         });
 
@@ -1424,18 +1499,32 @@ class QuizScene extends Phaser.Scene {
                     targets: button,
                     scaleX: 1,
                     scaleY: 1,
-                    duration: 100
+                    duration: 80
                 });
-                // Remove glow
+                // Reset
                 bg.clear();
                 bg.fillStyle(colors.warmWhite, 1);
-                bg.fillRoundedRect(-width/2, -height/2, width, height, 12);
-                bg.lineStyle(2, colors.sageGreen, 0.4);
-                bg.strokeRoundedRect(-width/2, -height/2, width, height, 12);
+                bg.fillRoundedRect(-width/2, -height/2, width, height, 10);
+                bg.lineStyle(1.5, colors.sageGreen, 0.3);
+                bg.strokeRoundedRect(-width/2, -height/2, width, height, 10);
+                shadow.clear();
+                shadow.fillStyle(0x000000, 0.12);
+                shadow.fillRoundedRect(-width/2 + 2, -height/2 + 2, width, height, 10);
             }
         });
 
-        button.on('pointerdown', () => this.handleAnswer(button));
+        // Press down effect
+        button.on('pointerdown', () => {
+            if (!this.answered && !button.eliminated) {
+                this.tweens.add({
+                    targets: button,
+                    scaleX: CONFIG.BUTTON_PRESS_SCALE,
+                    scaleY: CONFIG.BUTTON_PRESS_SCALE,
+                    duration: 50,
+                    onComplete: () => this.handleAnswer(button)
+                });
+            }
+        });
 
         return button;
     }
@@ -1504,7 +1593,7 @@ class QuizScene extends Phaser.Scene {
         }
 
         // Update displays
-        this.scoreText.setText(`Score: ${this.score}`);
+        this.scoreText.setText(`⭐ ${this.score}`);
         this.streakText.setText(this.getStreakDisplay());
 
         // Animate buttons
@@ -1659,42 +1748,50 @@ class QuizScene extends Phaser.Scene {
 
     showFeedback(isCorrect) {
         const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
         const colors = getActiveColors();
 
-        // Feedback panel
-        const panelWidth = width - 24;
-        const panelHeight = 70;
+        // Reset feedback container position
+        this.feedbackContainer.y = height * CONFIG.LAYOUT.FEEDBACK_Y;
+
+        // Feedback panel - compact
+        const panelWidth = width - 20;
+        const panelHeight = 55;
 
         const panel = this.add.graphics();
-        panel.fillStyle(isCorrect ? COLORS.success : colors.terracotta, 0.95);
-        panel.fillRoundedRect(-panelWidth/2, -panelHeight/2, panelWidth, panelHeight, 12);
+        panel.fillStyle(isCorrect ? COLORS.success : colors.terracotta, 0.92);
+        panel.fillRoundedRect(-panelWidth/2, -panelHeight/2, panelWidth, panelHeight, 10);
         this.feedbackContainer.add(panel);
 
-        // Icon and text
+        // Icon
         const icon = isCorrect ? '✓' : '✗';
-
-        this.add.text(-panelWidth/2 + 20, 0, icon, {
-            fontSize: '28px',
-            color: '#ffffff'
-        }).setOrigin(0, 0.5);
-        this.feedbackContainer.add(this.feedbackContainer.list[this.feedbackContainer.list.length - 1]);
-
-        const mnemonicText = this.add.text(-panelWidth/2 + 55, 0, `💡 ${this.currentPlant.mnemonic}`, {
-            fontFamily: 'DM Sans, sans-serif',
-            fontSize: '13px',
+        const iconText = this.add.text(-panelWidth/2 + 18, 0, icon, {
+            fontSize: '22px',
             color: '#ffffff',
-            wordWrap: { width: panelWidth - 80 }
+            fontStyle: '700'
+        }).setOrigin(0, 0.5);
+        this.feedbackContainer.add(iconText);
+
+        // Mnemonic with better formatting
+        const mnemonicText = this.add.text(-panelWidth/2 + 48, 0, this.currentPlant.mnemonic, {
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '12px',
+            color: '#ffffff',
+            fontStyle: '500',
+            wordWrap: { width: panelWidth - 70 },
+            lineSpacing: 2
         }).setOrigin(0, 0.5);
         this.feedbackContainer.add(mnemonicText);
 
-        // Animate in
+        // Animate in from bottom
         this.feedbackContainer.setAlpha(0);
-        this.feedbackContainer.y += 20;
+        const originalY = this.feedbackContainer.y;
+        this.feedbackContainer.y = originalY + 25;
         this.tweens.add({
             targets: this.feedbackContainer,
             alpha: 1,
-            y: this.feedbackContainer.y - 20,
-            duration: 300,
+            y: originalY,
+            duration: 280,
             ease: 'Back.easeOut'
         });
     }
