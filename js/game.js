@@ -697,14 +697,16 @@ class MenuScene extends Phaser.Scene {
         this.cameras.main.fadeIn(CONFIG.FADE_DURATION, 13, 31, 13);
 
         // Keyboard navigation
-        this.input.keyboard.on('keydown-ONE', () => {
-            soundManager.buttonClick();
-            this.transitionTo('QuizScene');
-        });
-        this.input.keyboard.on('keydown-TWO', () => {
-            soundManager.buttonClick();
-            this.transitionTo('CollectionScene');
-        });
+        if (this.input.keyboard) {
+            this.input.keyboard.on('keydown-ONE', () => {
+                soundManager.buttonClick();
+                this.transitionTo('QuizScene');
+            });
+            this.input.keyboard.on('keydown-TWO', () => {
+                soundManager.buttonClick();
+                this.transitionTo('CollectionScene');
+            });
+        }
     }
 
     createSettingsButtons() {
@@ -971,6 +973,9 @@ class QuizScene extends Phaser.Scene {
     }
 
     setupKeyboard() {
+        // Guard against missing keyboard plugin
+        if (!this.input.keyboard) return;
+
         // Number keys 1-4 for answers
         ['ONE', 'TWO', 'THREE', 'FOUR'].forEach((key, index) => {
             this.input.keyboard.on(`keydown-${key}`, () => {
@@ -1808,14 +1813,16 @@ class ResultsScene extends Phaser.Scene {
         this.cameras.main.fadeIn(CONFIG.FADE_DURATION, 13, 31, 13);
 
         // Keyboard shortcuts
-        this.input.keyboard.on('keydown-ENTER', () => {
-            soundManager.buttonClick();
-            this.transitionTo('QuizScene');
-        });
-        this.input.keyboard.on('keydown-ESC', () => {
-            soundManager.buttonClick();
-            this.transitionTo('MenuScene');
-        });
+        if (this.input.keyboard) {
+            this.input.keyboard.on('keydown-ENTER', () => {
+                soundManager.buttonClick();
+                this.transitionTo('QuizScene');
+            });
+            this.input.keyboard.on('keydown-ESC', () => {
+                soundManager.buttonClick();
+                this.transitionTo('MenuScene');
+            });
+        }
 
         // PERFECT SCORE - go over the top!
         if (this.roundData.score >= 100) {
@@ -2298,13 +2305,15 @@ class CollectionScene extends Phaser.Scene {
         this.cameras.main.fadeIn(CONFIG.FADE_DURATION, 13, 31, 13);
 
         // Keyboard navigation
-        this.input.keyboard.on('keydown-ESC', () => {
-            soundManager.buttonClick();
-            this.cameras.main.fade(CONFIG.FADE_DURATION, 13, 31, 13);
-            this.time.delayedCall(CONFIG.FADE_DURATION, () => {
-                this.scene.start('MenuScene');
+        if (this.input.keyboard) {
+            this.input.keyboard.on('keydown-ESC', () => {
+                soundManager.buttonClick();
+                this.cameras.main.fade(CONFIG.FADE_DURATION, 13, 31, 13);
+                this.time.delayedCall(CONFIG.FADE_DURATION, () => {
+                    this.scene.start('MenuScene');
+                });
             });
-        });
+        }
     }
 
     createHeader() {
